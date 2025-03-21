@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ClassDTO {
+public class ClassDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 

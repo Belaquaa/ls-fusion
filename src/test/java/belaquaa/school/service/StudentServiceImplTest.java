@@ -1,6 +1,6 @@
 package belaquaa.school.service;
 
-import belaquaa.school.dto.StudentDTO;
+import belaquaa.school.dto.StudentDto;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.model.ClassEntity;
 import belaquaa.school.model.Student;
@@ -12,16 +12,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static belaquaa.school.service.ServiceTestDataFactory.createClassEntity;
+import static belaquaa.school.service.ServiceTestDataFactory.createStudent;
+import static belaquaa.school.service.ServiceTestDataFactory.createStudentDTO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StudentServiceImplTest extends AbstractServiceTest {
-
     private StudentServiceImpl studentService;
 
     @BeforeEach
@@ -33,9 +35,8 @@ public class StudentServiceImplTest extends AbstractServiceTest {
     public void testGetAll() {
         List<Student> students = Arrays.asList(new Student(), new Student());
         when(studentRepository.findAll()).thenReturn(students);
-        when(studentMapper.toDTO(any())).thenReturn(new StudentDTO());
-
-        List<StudentDTO> result = studentService.getAll();
+        when(studentMapper.toDTO(any())).thenReturn(new StudentDto());
+        List<StudentDto> result = studentService.getAll();
         assertEquals(2, result.size());
         verify(studentRepository).findAll();
         verify(studentMapper, times(2)).toDTO(any());
@@ -46,9 +47,8 @@ public class StudentServiceImplTest extends AbstractServiceTest {
         Student student = new Student();
         student.setId(1L);
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-        when(studentMapper.toDTO(student)).thenReturn(new StudentDTO());
-
-        StudentDTO result = studentService.getById(1L);
+        when(studentMapper.toDTO(student)).thenReturn(new StudentDto());
+        StudentDto result = studentService.getById(1L);
         assertNotNull(result);
         verify(studentRepository).findById(1L);
         verify(studentMapper).toDTO(student);
@@ -63,19 +63,15 @@ public class StudentServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testCreate() {
-        StudentDTO studentDTO = new StudentDTO();
-        studentDTO.setClassId(1L);
-        Student student = new Student();
+        StudentDto studentDTO = createStudentDTO(null, 1L, 0, "Student");
+        Student student = createStudent(1L, new ClassEntity(), 0, "Student");
         when(studentMapper.toEntity(studentDTO)).thenReturn(student);
-
-        ClassEntity classEntity = new ClassEntity();
+        ClassEntity classEntity = createClassEntity(1L, 9, "A", null, null, null);
         when(classRepository.findById(1L)).thenReturn(Optional.of(classEntity));
         student.setClassEntity(classEntity);
-
         when(studentRepository.save(student)).thenReturn(student);
         when(studentMapper.toDTO(student)).thenReturn(studentDTO);
-
-        StudentDTO result = studentService.create(studentDTO);
+        StudentDto result = studentService.create(studentDTO);
         assertNotNull(result);
         verify(studentMapper).toEntity(studentDTO);
         verify(classRepository).findById(1L);
@@ -90,20 +86,13 @@ public class StudentServiceImplTest extends AbstractServiceTest {
         existing.setFullName("Old Name");
         existing.setOrderNumber(1);
         when(studentRepository.findById(1L)).thenReturn(Optional.of(existing));
-
-        StudentDTO updateDTO = new StudentDTO();
-        updateDTO.setFullName("New Name");
-        updateDTO.setOrderNumber(2);
-        updateDTO.setClassId(1L);
-
-        ClassEntity classEntity = new ClassEntity();
+        StudentDto updateDTO = createStudentDTO(null, 1L, 2, "New Name");
+        ClassEntity classEntity = createClassEntity(1L, 9, "A", null, null, null);
         when(classRepository.findById(1L)).thenReturn(Optional.of(classEntity));
         existing.setClassEntity(classEntity);
-
         when(studentRepository.save(existing)).thenReturn(existing);
         when(studentMapper.toDTO(existing)).thenReturn(updateDTO);
-
-        StudentDTO result = studentService.update(1L, updateDTO);
+        StudentDto result = studentService.update(1L, updateDTO);
         assertEquals("New Name", result.getFullName());
         assertEquals(2, result.getOrderNumber());
         verify(studentRepository).findById(1L);

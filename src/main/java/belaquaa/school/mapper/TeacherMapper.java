@@ -1,6 +1,6 @@
 package belaquaa.school.mapper;
 
-import belaquaa.school.dto.TeacherDTO;
+import belaquaa.school.dto.TeacherDto;
 import belaquaa.school.model.Subject;
 import belaquaa.school.model.Teacher;
 import org.mapstruct.Mapper;
@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = SubjectMapper.class)
 public interface TeacherMapper {
-    @Mapping(target = "subjectIds", expression = "java(getSubjectIds(teacher))")
-    TeacherDTO toDTO(Teacher teacher);
 
-    Teacher toEntity(TeacherDTO teacherDTO);
+    @Mapping(target = "subjectIds", expression = "java(getSubjectIds(teacher))")
+    TeacherDto toDTO(Teacher teacher);
+
+    @Mapping(target = "subjects", ignore = true)
+    @Mapping(target = "classEntity", ignore = true)
+    Teacher toEntity(TeacherDto teacherDto);
 
     default Set<Long> getSubjectIds(Teacher teacher) {
         if (teacher.getSubjects() == null) {

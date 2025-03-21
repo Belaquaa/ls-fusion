@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class SubjectDTO {
+public class SubjectDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 

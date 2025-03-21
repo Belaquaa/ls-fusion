@@ -1,6 +1,6 @@
 package belaquaa.school.controller;
 
-import belaquaa.school.dto.SubjectDTO;
+import belaquaa.school.dto.SubjectDto;
 import belaquaa.school.service.SubjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,22 +22,22 @@ public class SubjectController {
     private final SubjectService subjectService;
 
     @GetMapping
-    public List<SubjectDTO> getAllSubjects() {
+    public List<SubjectDto> getAllSubjects() {
         return subjectService.getAll();
     }
 
     @GetMapping("/{id}")
-    public SubjectDTO getSubjectById(@PathVariable Long id) {
+    public SubjectDto getSubjectById(@PathVariable Long id) {
         return subjectService.getById(id);
     }
 
     @PostMapping
-    public SubjectDTO createSubject(@Valid @RequestBody SubjectDTO subjectDTO) {
+    public SubjectDto createSubject(@Valid @RequestBody SubjectDto subjectDTO) {
         return subjectService.create(subjectDTO);
     }
 
     @PutMapping("/{id}")
-    public SubjectDTO updateSubject(@PathVariable Long id, @Valid @RequestBody SubjectDTO subjectDTO) {
+    public SubjectDto updateSubject(@PathVariable Long id, @Valid @RequestBody SubjectDto subjectDTO) {
         return subjectService.update(id, subjectDTO);
     }
 

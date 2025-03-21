@@ -1,7 +1,7 @@
 package belaquaa.school.controller;
 
-import belaquaa.school.dto.ClassDTO;
-import belaquaa.school.dto.StudentDTO;
+import belaquaa.school.dto.ClassDto;
+import belaquaa.school.dto.StudentDto;
 import belaquaa.school.service.ClassService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,22 +23,22 @@ public class ClassController {
     private final ClassService classService;
 
     @GetMapping
-    public List<ClassDTO> getAllClasses() {
+    public List<ClassDto> getAllClasses() {
         return classService.getAll();
     }
 
     @GetMapping("/{id}")
-    public ClassDTO getClassById(@PathVariable Long id) {
+    public ClassDto getClassById(@PathVariable Long id) {
         return classService.getById(id);
     }
 
     @PostMapping
-    public ClassDTO createClass(@Valid @RequestBody ClassDTO classDTO) {
+    public ClassDto createClass(@Valid @RequestBody ClassDto classDTO) {
         return classService.create(classDTO);
     }
 
     @PutMapping("/{id}")
-    public ClassDTO updateClass(@PathVariable Long id, @Valid @RequestBody ClassDTO classDTO) {
+    public ClassDto updateClass(@PathVariable Long id, @Valid @RequestBody ClassDto classDTO) {
         return classService.update(id, classDTO);
     }
 
@@ -48,7 +48,7 @@ public class ClassController {
     }
 
     @PostMapping("/{id}/students")
-    public StudentDTO addStudent(@PathVariable Long id, @Valid @RequestBody StudentDTO studentDTO) {
+    public StudentDto addStudent(@PathVariable Long id, @Valid @RequestBody StudentDto studentDTO) {
         return classService.addStudentToClass(id, studentDTO);
     }
 

@@ -1,6 +1,6 @@
 package belaquaa.school.controller;
 
-import belaquaa.school.dto.StudentDTO;
+import belaquaa.school.dto.StudentDto;
 import belaquaa.school.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,22 +22,22 @@ public class StudentController {
     private final StudentService studentService;
 
     @GetMapping
-    public List<StudentDTO> getAllStudents() {
+    public List<StudentDto> getAllStudents() {
         return studentService.getAll();
     }
 
     @GetMapping("/{id}")
-    public StudentDTO getStudentById(@PathVariable Long id) {
+    public StudentDto getStudentById(@PathVariable Long id) {
         return studentService.getById(id);
     }
 
     @PostMapping
-    public StudentDTO createStudent(@Valid @RequestBody StudentDTO studentDTO) {
+    public StudentDto createStudent(@Valid @RequestBody StudentDto studentDTO) {
         return studentService.create(studentDTO);
     }
 
     @PutMapping("/{id}")
-    public StudentDTO updateStudent(@PathVariable Long id, @Valid @RequestBody StudentDTO studentDTO) {
+    public StudentDto updateStudent(@PathVariable Long id, @Valid @RequestBody StudentDto studentDTO) {
         return studentService.update(id, studentDTO);
     }
 

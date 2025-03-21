@@ -1,12 +1,12 @@
 package belaquaa.school.mapper;
 
-import belaquaa.school.dto.SubjectDTO;
+import belaquaa.school.dto.SubjectDto;
 import belaquaa.school.model.Subject;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface SubjectMapper {
-    SubjectDTO toDTO(Subject subject);
+    SubjectDto toDTO(Subject subject);
 
-    Subject toEntity(SubjectDTO subjectDTO);
+    Subject toEntity(SubjectDto subjectDto);
 }

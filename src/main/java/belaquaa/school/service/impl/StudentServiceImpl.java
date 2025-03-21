@@ -1,6 +1,6 @@
 package belaquaa.school.service.impl;
 
-import belaquaa.school.dto.StudentDTO;
+import belaquaa.school.dto.StudentDto;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.mapper.StudentMapper;
 import belaquaa.school.model.ClassEntity;
@@ -25,7 +25,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<StudentDTO> getAll() {
+    public List<StudentDto> getAll() {
         return studentRepository.findAll().stream()
                 .map(studentMapper::toDTO)
                 .toList();
@@ -33,7 +33,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(readOnly = true)
-    public StudentDTO getById(Long id) {
+    public StudentDto getById(Long id) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ученик не найден"));
         return studentMapper.toDTO(student);
@@ -41,7 +41,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    public StudentDTO create(StudentDTO studentDTO) {
+    public StudentDto create(StudentDto studentDTO) {
         Student student = studentMapper.toEntity(studentDTO);
         if (studentDTO.getClassId() != null) {
             ClassEntity classEntity = classRepository.findById(studentDTO.getClassId())
@@ -55,7 +55,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    public StudentDTO update(Long id, StudentDTO studentDTO) {
+    public StudentDto update(Long id, StudentDto studentDTO) {
         Student existing = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ученик не найден"));
         existing.setFullName(studentDTO.getFullName());

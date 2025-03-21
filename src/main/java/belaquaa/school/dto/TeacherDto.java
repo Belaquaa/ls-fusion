@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.Set;
 
 @Data
-public class TeacherDTO {
+public class TeacherDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 

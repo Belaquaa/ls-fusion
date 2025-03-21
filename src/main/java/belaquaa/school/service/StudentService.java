@@ -1,17 +1,17 @@
 package belaquaa.school.service;
 
-import belaquaa.school.dto.StudentDTO;
+import belaquaa.school.dto.StudentDto;
 
 import java.util.List;
 
 public interface StudentService {
-    List<StudentDTO> getAll();
+    List<StudentDto> getAll();
 
-    StudentDTO getById(Long id);
+    StudentDto getById(Long id);
 
-    StudentDTO create(StudentDTO studentDTO);
+    StudentDto create(StudentDto studentDTO);
 
-    StudentDTO update(Long id, StudentDTO studentDTO);
+    StudentDto update(Long id, StudentDto studentDTO);
 
     void delete(Long id);
 }

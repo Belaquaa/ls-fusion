@@ -1,7 +1,6 @@
 package belaquaa.school.service;
 
-import belaquaa.school.dto.SubjectDTO;
-import belaquaa.school.dto.TeacherDTO;
+import belaquaa.school.dto.TeacherDto;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.model.Subject;
 import belaquaa.school.model.Teacher;
@@ -14,31 +13,36 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
+import static belaquaa.school.service.ServiceTestDataFactory.createSubject;
+import static belaquaa.school.service.ServiceTestDataFactory.createSubjectDTO;
+import static belaquaa.school.service.ServiceTestDataFactory.createTeacher;
+import static belaquaa.school.service.ServiceTestDataFactory.createTeacherDTO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TeacherServiceImplTest extends AbstractServiceTest {
-
     private TeacherServiceImpl teacherService;
+    private SubjectService subjectService;
 
     @BeforeEach
     public void setUp() {
-        teacherService = new TeacherServiceImpl(teacherRepository, subjectRepository, teacherMapper);
+        subjectService = mock(SubjectService.class);
+        teacherService = new TeacherServiceImpl(teacherRepository, subjectService, teacherMapper, subjectMapper);
     }
 
     @Test
     public void testGetAll() {
         List<Teacher> teachers = Arrays.asList(new Teacher(), new Teacher());
         when(teacherRepository.findAll()).thenReturn(teachers);
-        when(teacherMapper.toDTO(any())).thenReturn(new TeacherDTO());
-
-        List<TeacherDTO> result = teacherService.getAll();
+        when(teacherMapper.toDTO(any())).thenReturn(new TeacherDto());
+        List<TeacherDto> result = teacherService.getAll();
         assertEquals(2, result.size());
         verify(teacherRepository).findAll();
         verify(teacherMapper, times(2)).toDTO(any());
@@ -46,12 +50,10 @@ public class TeacherServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testGetByIdFound() {
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
+        Teacher teacher = createTeacher(1L, "Teacher", true, null);
         when(teacherRepository.findById(1L)).thenReturn(Optional.of(teacher));
-        when(teacherMapper.toDTO(teacher)).thenReturn(new TeacherDTO());
-
-        TeacherDTO result = teacherService.getById(1L);
+        when(teacherMapper.toDTO(teacher)).thenReturn(new TeacherDto());
+        TeacherDto result = teacherService.getById(1L);
         assertNotNull(result);
         verify(teacherRepository).findById(1L);
         verify(teacherMapper).toDTO(teacher);
@@ -66,57 +68,38 @@ public class TeacherServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testCreate() {
-        TeacherDTO teacherDTO = new TeacherDTO();
-        teacherDTO.setId(1L);
-        // Устанавливаем предметы в teacherDTO
-        SubjectDTO subjectDTO = new SubjectDTO();
-        subjectDTO.setId(100L);
-        teacherDTO.setSubjects(new HashSet<>(List.of(subjectDTO)));
-
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
+        TeacherDto teacherDTO = createTeacherDTO(null, "Teacher", true, new HashSet<>(List.of(100L)));
+        Teacher teacher = createTeacher(null, "Teacher", true, new HashSet<>());
         when(teacherMapper.toEntity(teacherDTO)).thenReturn(teacher);
-
-        Subject subject = new Subject();
-        when(subjectRepository.findById(100L)).thenReturn(Optional.of(subject));
-
+        Subject subject = createSubject(100L, "History", false);
+        when(subjectService.getById(100L)).thenReturn(createSubjectDTO(100L, "History", false));
+        when(subjectMapper.toEntity(any())).thenReturn(subject);
         teacher.setSubjects(new HashSet<>(List.of(subject)));
         when(teacherRepository.save(teacher)).thenReturn(teacher);
         when(teacherMapper.toDTO(teacher)).thenReturn(teacherDTO);
-
-        TeacherDTO result = teacherService.create(teacherDTO);
+        TeacherDto result = teacherService.create(teacherDTO);
         assertNotNull(result);
-        verify(subjectRepository).findById(100L);
+        verify(subjectService).getById(100L);
         verify(teacherRepository).save(teacher);
         verify(teacherMapper).toDTO(teacher);
     }
 
     @Test
     public void testUpdate() {
-        Teacher existing = new Teacher();
-        existing.setId(1L);
-        existing.setFullName("Old Name");
-        existing.setClassTeacher(false);
+        Teacher existing = createTeacher(1L, "Old Name", false, new HashSet<>());
         when(teacherRepository.findById(1L)).thenReturn(Optional.of(existing));
-
-        TeacherDTO updateDTO = new TeacherDTO();
-        updateDTO.setFullName("New Name");
-        updateDTO.setClassTeacher(true);
-        SubjectDTO subjectDTO = new SubjectDTO();
-        subjectDTO.setId(100L);
-        updateDTO.setSubjects(new HashSet<>(List.of(subjectDTO)));
-
-        Subject subject = new Subject();
-        when(subjectRepository.findById(100L)).thenReturn(Optional.of(subject));
+        TeacherDto updateDTO = createTeacherDTO(null, "New Name", true, new HashSet<>(List.of(100L)));
+        Subject subject = createSubject(100L, "History", false);
+        when(subjectService.getById(100L)).thenReturn(createSubjectDTO(100L, "History", false));
+        when(subjectMapper.toEntity(any())).thenReturn(subject);
         existing.setSubjects(new HashSet<>(List.of(subject)));
         when(teacherRepository.save(existing)).thenReturn(existing);
         when(teacherMapper.toDTO(existing)).thenReturn(updateDTO);
-
-        TeacherDTO result = teacherService.update(1L, updateDTO);
+        TeacherDto result = teacherService.update(1L, updateDTO);
         assertEquals("New Name", result.getFullName());
         assertTrue(result.isClassTeacher());
         verify(teacherRepository).findById(1L);
-        verify(subjectRepository).findById(100L);
+        verify(subjectService).getById(100L);
         verify(teacherRepository).save(existing);
         verify(teacherMapper).toDTO(existing);
     }
@@ -129,17 +112,12 @@ public class TeacherServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testGetClassTeachers() {
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setClassTeacher(true);
-        when(teacherRepository.findByIsClassTeacherTrue()).thenReturn(List.of(teacher));
-
-        TeacherDTO teacherDTO = new TeacherDTO();
-        when(teacherMapper.toDTO(teacher)).thenReturn(teacherDTO);
-
-        List<TeacherDTO> result = teacherService.getClassTeachers();
+        Teacher teacher = createTeacher(1L, "Teacher", true, null);
+        when(teacherRepository.findByIsClassTeacher(true)).thenReturn(List.of(teacher));
+        when(teacherMapper.toDTO(teacher)).thenReturn(new TeacherDto());
+        List<TeacherDto> result = teacherService.getTeachersByIsClassTeacher(true);
         assertEquals(1, result.size());
-        verify(teacherRepository).findByIsClassTeacherTrue();
+        verify(teacherRepository).findByIsClassTeacher(true);
         verify(teacherMapper).toDTO(teacher);
     }
 }

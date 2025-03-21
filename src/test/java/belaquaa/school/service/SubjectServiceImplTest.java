@@ -1,6 +1,6 @@
 package belaquaa.school.service;
 
-import belaquaa.school.dto.SubjectDTO;
+import belaquaa.school.dto.SubjectDto;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.model.Subject;
 import belaquaa.school.service.impl.SubjectServiceImpl;
@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static belaquaa.school.service.ServiceTestDataFactory.createSubject;
+import static belaquaa.school.service.ServiceTestDataFactory.createSubjectDTO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,7 +23,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SubjectServiceImplTest extends AbstractServiceTest {
-
     private SubjectServiceImpl subjectService;
 
     @BeforeEach
@@ -33,9 +34,8 @@ public class SubjectServiceImplTest extends AbstractServiceTest {
     public void testGetAll() {
         List<Subject> subjects = Arrays.asList(new Subject(), new Subject());
         when(subjectRepository.findAll()).thenReturn(subjects);
-        when(subjectMapper.toDTO(any(Subject.class))).thenReturn(new SubjectDTO());
-
-        List<SubjectDTO> result = subjectService.getAll();
+        when(subjectMapper.toDTO(any(Subject.class))).thenReturn(new SubjectDto());
+        List<SubjectDto> result = subjectService.getAll();
         assertEquals(2, result.size());
         verify(subjectRepository).findAll();
         verify(subjectMapper, times(subjects.size())).toDTO(any(Subject.class));
@@ -43,13 +43,11 @@ public class SubjectServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testGetByIdFound() {
-        Subject subject = new Subject();
-        subject.setId(1L);
+        Subject subject = createSubject(1L, "Math", true);
         when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
-        SubjectDTO dto = new SubjectDTO();
+        SubjectDto dto = createSubjectDTO(1L, "Math", true);
         when(subjectMapper.toDTO(subject)).thenReturn(dto);
-
-        SubjectDTO result = subjectService.getById(1L);
+        SubjectDto result = subjectService.getById(1L);
         assertNotNull(result);
         verify(subjectRepository).findById(1L);
         verify(subjectMapper).toDTO(subject);
@@ -64,13 +62,12 @@ public class SubjectServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testCreate() {
-        SubjectDTO dto = new SubjectDTO();
-        Subject subject = new Subject();
+        SubjectDto dto = createSubjectDTO(null, "History", false);
+        Subject subject = createSubject(null, "History", false);
         when(subjectMapper.toEntity(dto)).thenReturn(subject);
         when(subjectRepository.save(subject)).thenReturn(subject);
         when(subjectMapper.toDTO(subject)).thenReturn(dto);
-
-        SubjectDTO result = subjectService.create(dto);
+        SubjectDto result = subjectService.create(dto);
         assertNotNull(result);
         verify(subjectMapper).toEntity(dto);
         verify(subjectRepository).save(subject);
@@ -79,20 +76,12 @@ public class SubjectServiceImplTest extends AbstractServiceTest {
 
     @Test
     public void testUpdate() {
-        Subject existing = new Subject();
-        existing.setId(1L);
-        existing.setName("Old Name");
-        existing.setProfile(false);
+        Subject existing = createSubject(1L, "Old Name", false);
         when(subjectRepository.findById(1L)).thenReturn(Optional.of(existing));
-
-        SubjectDTO updateDTO = new SubjectDTO();
-        updateDTO.setName("New Name");
-        updateDTO.setProfile(true);
-
+        SubjectDto updateDTO = createSubjectDTO(null, "New Name", true);
         when(subjectRepository.save(existing)).thenReturn(existing);
         when(subjectMapper.toDTO(existing)).thenReturn(updateDTO);
-
-        SubjectDTO result = subjectService.update(1L, updateDTO);
+        SubjectDto result = subjectService.update(1L, updateDTO);
         assertEquals("New Name", result.getName());
         assertTrue(result.isProfile());
         verify(subjectRepository).findById(1L);

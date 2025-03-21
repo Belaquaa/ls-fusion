@@ -1,19 +1,19 @@
 package belaquaa.school.service;
 
-import belaquaa.school.dto.TeacherDTO;
+import belaquaa.school.dto.TeacherDto;
 
 import java.util.List;
 
 public interface TeacherService {
-    List<TeacherDTO> getAll();
+    List<TeacherDto> getAll();
 
-    TeacherDTO getById(Long id);
+    TeacherDto getById(Long id);
 
-    TeacherDTO create(TeacherDTO teacherDTO);
+    TeacherDto create(TeacherDto teacherDTO);
 
-    TeacherDTO update(Long id, TeacherDTO teacherDTO);
+    TeacherDto update(Long id, TeacherDto teacherDTO);
 
     void delete(Long id);
 
-    List<TeacherDTO> getTeachersByIsClassTeacher(Boolean isClassTeacher);
+    List<TeacherDto> getTeachersByIsClassTeacher(Boolean isClassTeacher);
 }

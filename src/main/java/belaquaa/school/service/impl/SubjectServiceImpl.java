@@ -1,6 +1,6 @@
 package belaquaa.school.service.impl;
 
-import belaquaa.school.dto.SubjectDTO;
+import belaquaa.school.dto.SubjectDto;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.mapper.SubjectMapper;
 import belaquaa.school.model.Subject;
@@ -26,7 +26,7 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "subjectList")
-    public List<SubjectDTO> getAll() {
+    public List<SubjectDto> getAll() {
         return subjectRepository.findAll().stream()
                 .map(subjectMapper::toDTO)
                 .toList();
@@ -35,7 +35,7 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "subjects", key = "#id")
-    public SubjectDTO getById(Long id) {
+    public SubjectDto getById(Long id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Предмет не найден"));
         return subjectMapper.toDTO(subject);
@@ -47,7 +47,7 @@ public class SubjectServiceImpl implements SubjectService {
             @CacheEvict(cacheNames = "subjectList", allEntries = true),
             @CacheEvict(cacheNames = "subjects", allEntries = true)
     })
-    public SubjectDTO create(SubjectDTO subjectDTO) {
+    public SubjectDto create(SubjectDto subjectDTO) {
         Subject subject = subjectMapper.toEntity(subjectDTO);
         subject = subjectRepository.save(subject);
         log.info("Создан предмет с id {}", subject.getId());
@@ -60,7 +60,7 @@ public class SubjectServiceImpl implements SubjectService {
             @CacheEvict(cacheNames = "subjectList", allEntries = true),
             @CacheEvict(cacheNames = "subjects", allEntries = true)
     })
-    public SubjectDTO update(Long id, SubjectDTO subjectDTO) {
+    public SubjectDto update(Long id, SubjectDto subjectDTO) {
         Subject existing = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Предмет не найден"));
         existing.setName(subjectDTO.getName());

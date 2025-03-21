@@ -1,54 +1,52 @@
 package belaquaa.school.mapper;
 
-import belaquaa.school.dto.ClassDTO;
+import belaquaa.school.dto.ClassDto;
 import belaquaa.school.model.ClassEntity;
 import belaquaa.school.model.Student;
+import belaquaa.school.model.Subject;
+import belaquaa.school.model.Teacher;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class ClassMapperTest extends AbstractMapperTest {
 
+public class ClassMapperTest extends AbstractMapperTest {
     @Test
     public void testToDTO() {
-        ClassEntity classEntity = new ClassEntity();
-        classEntity.setId(1L);
-        classEntity.setNumber(9);
-        classEntity.setLetter("А");
-
-        Student student1 = new Student();
-        student1.setId(100L);
-        Student student2 = new Student();
-        student2.setId(101L);
-        classEntity.setStudents(Arrays.asList(student1, student2));
-
-        classEntity.setProfileSubject(null);
-        classEntity.setClassTeacher(null);
-
-        ClassDTO dto = classMapper.toDTO(classEntity);
+        Student student1 = MapperTestDataFactory.createStudent(100L, "Student1", 1, null);
+        Student student2 = MapperTestDataFactory.createStudent(101L, "Student2", 2, null);
+        List<Student> students = Arrays.asList(student1, student2);
+        Subject subject = MapperTestDataFactory.createSubject(5L, "Математика", true);
+        Teacher teacher = MapperTestDataFactory.createTeacher(7L, "Иванов Иван", true, null);
+        ClassEntity classEntity = MapperTestDataFactory.createClassEntity(1L, 9, "А", subject, teacher, students);
+        ClassDto dto = classMapper.toDTO(classEntity);
         assertNotNull(dto);
         assertEquals(classEntity.getId(), dto.getId());
         assertEquals(classEntity.getNumber(), dto.getNumber());
         assertEquals(classEntity.getLetter(), dto.getLetter());
         assertEquals(classEntity.getStudents().size(), dto.getStudentsCount());
+        assertEquals(subject.getId(), dto.getProfileSubjectId());
+        assertEquals(teacher.getId(), dto.getClassTeacherId());
+        List<Long> expectedStudentIds = Arrays.asList(student1.getId(), student2.getId());
+        assertEquals(expectedStudentIds, dto.getStudentIds());
     }
 
     @Test
     public void testToEntity() {
-        ClassDTO dto = new ClassDTO();
+        ClassDto dto = new ClassDto();
         dto.setId(2L);
         dto.setNumber(10);
         dto.setLetter("Б");
-        dto.setProfileSubject(null);
-        dto.setClassTeacher(null);
-        dto.setStudents(Collections.emptyList());
+        dto.setProfileSubjectId(null);
+        dto.setClassTeacherId(null);
+        dto.setStudentIds(Collections.emptyList());
         dto.setStudentsCount(0);
-
         ClassEntity entity = classMapper.toEntity(dto);
         assertNotNull(entity);
         assertEquals(dto.getId(), entity.getId());

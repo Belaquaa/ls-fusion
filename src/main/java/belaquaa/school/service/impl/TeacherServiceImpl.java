@@ -1,6 +1,6 @@
 package belaquaa.school.service.impl;
 
-import belaquaa.school.dto.TeacherDTO;
+import belaquaa.school.dto.TeacherDto;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.mapper.SubjectMapper;
 import belaquaa.school.mapper.TeacherMapper;
@@ -30,7 +30,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TeacherDTO> getAll() {
+    public List<TeacherDto> getAll() {
         return teacherRepository.findAll().stream()
                 .map(teacherMapper::toDTO)
                 .toList();
@@ -39,7 +39,7 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "teachers", key = "#id")
-    public TeacherDTO getById(Long id) {
+    public TeacherDto getById(Long id) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Учитель не найден"));
         return teacherMapper.toDTO(teacher);
@@ -47,7 +47,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TeacherDTO> getTeachersByIsClassTeacher(Boolean isClassTeacher) {
+    public List<TeacherDto> getTeachersByIsClassTeacher(Boolean isClassTeacher) {
         List<Teacher> teachers;
         if (isClassTeacher == null) {
             teachers = teacherRepository.findAll();
@@ -61,7 +61,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional
-    public TeacherDTO create(TeacherDTO teacherDTO) {
+    public TeacherDto create(TeacherDto teacherDTO) {
         Teacher teacher = teacherMapper.toEntity(teacherDTO);
         teacher.setSubjects(loadSubjects(teacherDTO.getSubjectIds()));
         teacher = teacherRepository.save(teacher);
@@ -71,7 +71,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional
-    public TeacherDTO update(Long id, TeacherDTO teacherDTO) {
+    public TeacherDto update(Long id, TeacherDto teacherDTO) {
         Teacher existing = teacherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Учитель не найден"));
         existing.setFullName(teacherDTO.getFullName());

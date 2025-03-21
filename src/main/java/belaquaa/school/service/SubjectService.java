@@ -1,17 +1,17 @@
 package belaquaa.school.service;
 
-import belaquaa.school.dto.SubjectDTO;
+import belaquaa.school.dto.SubjectDto;
 
 import java.util.List;
 
 public interface SubjectService {
-    List<SubjectDTO> getAll();
+    List<SubjectDto> getAll();
 
-    SubjectDTO getById(Long id);
+    SubjectDto getById(Long id);
 
-    SubjectDTO create(SubjectDTO subjectDTO);
+    SubjectDto create(SubjectDto subjectDTO);
 
-    SubjectDTO update(Long id, SubjectDTO subjectDTO);
+    SubjectDto update(Long id, SubjectDto subjectDTO);
 
     void delete(Long id);
 }
