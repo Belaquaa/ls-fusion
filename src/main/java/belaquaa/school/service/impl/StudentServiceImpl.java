@@ -64,6 +64,8 @@ public class StudentServiceImpl implements StudentService {
             ClassEntity classEntity = classRepository.findById(studentDTO.getClassId())
                     .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
             existing.setClassEntity(classEntity);
+        } else {
+            existing.setClassEntity(null);
         }
         existing = studentRepository.save(existing);
         log.info("Обновлен ученик с id {}", id);

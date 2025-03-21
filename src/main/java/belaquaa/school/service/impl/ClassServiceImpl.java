@@ -59,22 +59,8 @@ public class ClassServiceImpl implements ClassService {
     @Transactional
     public ClassDto create(ClassDto classDTO) {
         ClassEntity classEntity = classMapper.toEntity(classDTO);
-        if (classDTO.getProfileSubjectId() != null) {
-            SubjectDto subjDTO = subjectService.getById(classDTO.getProfileSubjectId());
-            Subject subject = subjectMapper.toEntity(subjDTO);
-            if (!subject.isProfile()) {
-                throw new InvalidOperationException("Предмет " + subject.getName() + " не может быть профильным");
-            }
-            classEntity.setProfileSubject(subject);
-        }
-        if (classDTO.getClassTeacherId() != null) {
-            TeacherDto teacherDTO = teacherService.getById(classDTO.getClassTeacherId());
-            Teacher teacher = teacherMapper.toEntity(teacherDTO);
-            if (!teacher.isClassTeacher()) {
-                throw new InvalidOperationException("Учитель " + teacher.getFullName() + " не является классным руководителем");
-            }
-            classEntity.setClassTeacher(teacher);
-        }
+        setProfileSubject(classDTO, classEntity);
+        setClassTeacher(classDTO, classEntity);
         classEntity = classRepository.save(classEntity);
         log.info("Создан класс с id {}", classEntity.getId());
         return classMapper.toDTO(classEntity);
@@ -87,26 +73,8 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
         existing.setNumber(classDTO.getNumber());
         existing.setLetter(classDTO.getLetter());
-        if (classDTO.getProfileSubjectId() != null) {
-            SubjectDto subjDTO = subjectService.getById(classDTO.getProfileSubjectId());
-            Subject subject = subjectMapper.toEntity(subjDTO);
-            if (!subject.isProfile()) {
-                throw new InvalidOperationException("Предмет " + subject.getName() + " не может быть профильным");
-            }
-            existing.setProfileSubject(subject);
-        } else {
-            existing.setProfileSubject(null);
-        }
-        if (classDTO.getClassTeacherId() != null) {
-            TeacherDto teacherDTO = teacherService.getById(classDTO.getClassTeacherId());
-            Teacher teacher = teacherMapper.toEntity(teacherDTO);
-            if (!teacher.isClassTeacher()) {
-                throw new InvalidOperationException("Учитель " + teacher.getFullName() + " не является классным руководителем");
-            }
-            existing.setClassTeacher(teacher);
-        } else {
-            existing.setClassTeacher(null);
-        }
+        setProfileSubject(classDTO, existing);
+        setClassTeacher(classDTO, existing);
         existing = classRepository.save(existing);
         log.info("Обновлен класс с id {}", id);
         return classMapper.toDTO(existing);
@@ -141,10 +109,36 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ученик не найден"));
-        if (!student.getClassEntity().getId().equals(classEntity.getId())) {
+        if (student.getClassEntity() == null || !student.getClassEntity().getId().equals(classEntity.getId())) {
             throw new InvalidOperationException("Ученик не принадлежит классу id=" + classId);
         }
         studentRepository.delete(student);
         log.info("Удален ученик с id {} из класса id {}", studentId, classId);
+    }
+
+    private void setProfileSubject(ClassDto classDTO, ClassEntity classEntity) {
+        if (classDTO.getProfileSubjectId() != null) {
+            SubjectDto subjDTO = subjectService.getById(classDTO.getProfileSubjectId());
+            Subject subject = subjectMapper.toEntity(subjDTO);
+            if (!subject.isProfile()) {
+                throw new InvalidOperationException("Предмет " + subject.getName() + " не может быть профильным");
+            }
+            classEntity.setProfileSubject(subject);
+        } else {
+            classEntity.setProfileSubject(null);
+        }
+    }
+
+    private void setClassTeacher(ClassDto classDTO, ClassEntity classEntity) {
+        if (classDTO.getClassTeacherId() != null) {
+            TeacherDto teacherDTO = teacherService.getById(classDTO.getClassTeacherId());
+            Teacher teacher = teacherMapper.toEntity(teacherDTO);
+            if (!teacher.isClassTeacher()) {
+                throw new InvalidOperationException("Учитель " + teacher.getFullName() + " не является классным руководителем");
+            }
+            classEntity.setClassTeacher(teacher);
+        } else {
+            classEntity.setClassTeacher(null);
+        }
     }
 }
