@@ -2,24 +2,25 @@ package belaquaa.school.service.impl;
 
 import belaquaa.school.dto.ClassDTO;
 import belaquaa.school.dto.StudentDTO;
+import belaquaa.school.dto.SubjectDTO;
+import belaquaa.school.dto.TeacherDTO;
 import belaquaa.school.exception.InvalidOperationException;
 import belaquaa.school.exception.ResourceNotFoundException;
 import belaquaa.school.mapper.ClassMapper;
 import belaquaa.school.mapper.StudentMapper;
+import belaquaa.school.mapper.SubjectMapper;
+import belaquaa.school.mapper.TeacherMapper;
 import belaquaa.school.model.ClassEntity;
 import belaquaa.school.model.Student;
 import belaquaa.school.model.Subject;
 import belaquaa.school.model.Teacher;
 import belaquaa.school.repository.ClassRepository;
 import belaquaa.school.repository.StudentRepository;
-import belaquaa.school.repository.SubjectRepository;
-import belaquaa.school.repository.TeacherRepository;
 import belaquaa.school.service.ClassService;
-import jakarta.validation.Valid;
+import belaquaa.school.service.SubjectService;
+import belaquaa.school.service.TeacherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,14 +31,16 @@ import java.util.List;
 @Slf4j
 public class ClassServiceImpl implements ClassService {
     private final ClassRepository classRepository;
-    private final SubjectRepository subjectRepository;
-    private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
     private final ClassMapper classMapper;
     private final StudentMapper studentMapper;
+    private final SubjectService subjectService;
+    private final TeacherService teacherService;
+    private final SubjectMapper subjectMapper;
+    private final TeacherMapper teacherMapper;
 
     @Override
-    @Cacheable(cacheNames = "classes")
+    @Transactional(readOnly = true)
     public List<ClassDTO> getAll() {
         return classRepository.findAll().stream()
                 .map(classMapper::toDTO)
@@ -45,7 +48,7 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    @Cacheable(cacheNames = "classes", key = "#id")
+    @Transactional(readOnly = true)
     public ClassDTO getById(Long id) {
         ClassEntity classEntity = classRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
@@ -54,18 +57,24 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "classes", allEntries = true)
-    public ClassDTO create(@Valid ClassDTO classDTO) {
+    public ClassDTO create(ClassDTO classDTO) {
         ClassEntity classEntity = classMapper.toEntity(classDTO);
-        if (classEntity.getProfileSubject() != null) {
-            Subject subj = subjectRepository.findById(classEntity.getProfileSubject().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Профильный предмет не найден"));
-            if (!subj.isProfile()) {
-                throw new InvalidOperationException("Предмет " + subj.getName() + " не может быть профильным");
+        if (classDTO.getProfileSubjectId() != null) {
+            SubjectDTO subjDTO = subjectService.getById(classDTO.getProfileSubjectId());
+            Subject subject = subjectMapper.toEntity(subjDTO);
+            if (!subject.isProfile()) {
+                throw new InvalidOperationException("Предмет " + subject.getName() + " не может быть профильным");
             }
-            classEntity.setProfileSubject(subj);
+            classEntity.setProfileSubject(subject);
         }
-        classEntity = processClassTeacher(classEntity, classDTO);
+        if (classDTO.getClassTeacherId() != null) {
+            TeacherDTO teacherDTO = teacherService.getById(classDTO.getClassTeacherId());
+            Teacher teacher = teacherMapper.toEntity(teacherDTO);
+            if (!teacher.isClassTeacher()) {
+                throw new InvalidOperationException("Учитель " + teacher.getFullName() + " не является классным руководителем");
+            }
+            classEntity.setClassTeacher(teacher);
+        }
         classEntity = classRepository.save(classEntity);
         log.info("Создан класс с id {}", classEntity.getId());
         return classMapper.toDTO(classEntity);
@@ -73,21 +82,31 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "classes", allEntries = true)
-    public ClassDTO update(Long id, @Valid ClassDTO classDTO) {
+    public ClassDTO update(Long id, ClassDTO classDTO) {
         ClassEntity existing = classRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
         existing.setNumber(classDTO.getNumber());
         existing.setLetter(classDTO.getLetter());
-        if (classDTO.getProfileSubject() != null) {
-            Subject subj = subjectRepository.findById(classDTO.getProfileSubject().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Предмет не найден"));
-            if (!subj.isProfile()) {
-                throw new InvalidOperationException("Предмет " + subj.getName() + " не может быть профильным");
+        if (classDTO.getProfileSubjectId() != null) {
+            SubjectDTO subjDTO = subjectService.getById(classDTO.getProfileSubjectId());
+            Subject subject = subjectMapper.toEntity(subjDTO);
+            if (!subject.isProfile()) {
+                throw new InvalidOperationException("Предмет " + subject.getName() + " не может быть профильным");
             }
-            existing.setProfileSubject(subj);
+            existing.setProfileSubject(subject);
+        } else {
+            existing.setProfileSubject(null);
         }
-        existing = processClassTeacher(existing, classDTO);
+        if (classDTO.getClassTeacherId() != null) {
+            TeacherDTO teacherDTO = teacherService.getById(classDTO.getClassTeacherId());
+            Teacher teacher = teacherMapper.toEntity(teacherDTO);
+            if (!teacher.isClassTeacher()) {
+                throw new InvalidOperationException("Учитель " + teacher.getFullName() + " не является классным руководителем");
+            }
+            existing.setClassTeacher(teacher);
+        } else {
+            existing.setClassTeacher(null);
+        }
         existing = classRepository.save(existing);
         log.info("Обновлен класс с id {}", id);
         return classMapper.toDTO(existing);
@@ -95,7 +114,6 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "classes", allEntries = true)
     public void delete(Long id) {
         classRepository.deleteById(id);
         log.info("Удален класс с id {}", id);
@@ -103,8 +121,7 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "classes", allEntries = true)
-    public StudentDTO addStudentToClass(Long classId, @Valid StudentDTO studentDTO) {
+    public StudentDTO addStudentToClass(Long classId, StudentDTO studentDTO) {
         ClassEntity classEntity = classRepository.findById(classId)
                 .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
         Student student = studentMapper.toEntity(studentDTO);
@@ -119,7 +136,6 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "classes", allEntries = true)
     public void removeStudentFromClass(Long classId, Long studentId) {
         ClassEntity classEntity = classRepository.findById(classId)
                 .orElseThrow(() -> new ResourceNotFoundException("Класс не найден"));
@@ -130,17 +146,5 @@ public class ClassServiceImpl implements ClassService {
         }
         studentRepository.delete(student);
         log.info("Удален ученик с id {} из класса id {}", studentId, classId);
-    }
-
-    private ClassEntity processClassTeacher(ClassEntity classEntity, ClassDTO dto) {
-        if (dto.getClassTeacher() != null) {
-            Teacher teacher = teacherRepository.findById(dto.getClassTeacher().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Учитель не найден"));
-            if (!teacher.isClassTeacher()) {
-                throw new InvalidOperationException("Учитель " + teacher.getFullName() + " не является классным руководителем");
-            }
-            classEntity.setClassTeacher(teacher);
-        }
-        return classEntity;
     }
 }

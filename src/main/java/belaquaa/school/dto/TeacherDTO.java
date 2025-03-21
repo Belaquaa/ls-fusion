@@ -1,5 +1,6 @@
 package belaquaa.school.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -8,6 +9,7 @@ import java.util.Set;
 
 @Data
 public class TeacherDTO {
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @NotBlank(message = "ФИО учителя обязательно")
@@ -16,5 +18,5 @@ public class TeacherDTO {
 
     private boolean isClassTeacher;
 
-    private Set<SubjectDTO> subjects;
+    private Set<Long> subjectIds;
 }

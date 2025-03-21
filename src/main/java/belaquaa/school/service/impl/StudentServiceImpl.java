@@ -8,11 +8,8 @@ import belaquaa.school.model.Student;
 import belaquaa.school.repository.ClassRepository;
 import belaquaa.school.repository.StudentRepository;
 import belaquaa.school.service.StudentService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +24,7 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper studentMapper;
 
     @Override
-    @Cacheable(cacheNames = "students")
+    @Transactional(readOnly = true)
     public List<StudentDTO> getAll() {
         return studentRepository.findAll().stream()
                 .map(studentMapper::toDTO)
@@ -35,7 +32,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    @Cacheable(cacheNames = "students", key = "#id")
+    @Transactional(readOnly = true)
     public StudentDTO getById(Long id) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ученик не найден"));
@@ -44,8 +41,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "students", allEntries = true)
-    public StudentDTO create(@Valid StudentDTO studentDTO) {
+    public StudentDTO create(StudentDTO studentDTO) {
         Student student = studentMapper.toEntity(studentDTO);
         if (studentDTO.getClassId() != null) {
             ClassEntity classEntity = classRepository.findById(studentDTO.getClassId())
@@ -59,8 +55,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "students", allEntries = true)
-    public StudentDTO update(Long id, @Valid StudentDTO studentDTO) {
+    public StudentDTO update(Long id, StudentDTO studentDTO) {
         Student existing = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ученик не найден"));
         existing.setFullName(studentDTO.getFullName());
@@ -77,7 +72,6 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "students", allEntries = true)
     public void delete(Long id) {
         studentRepository.deleteById(id);
         log.info("Удален ученик с id {}", id);

@@ -15,5 +15,5 @@ public interface TeacherService {
 
     void delete(Long id);
 
-    List<TeacherDTO> getClassTeachers();
+    List<TeacherDTO> getTeachersByIsClassTeacher(Boolean isClassTeacher);
 }

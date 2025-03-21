@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,8 @@ public class SubjectServiceImpl implements SubjectService {
     private final SubjectMapper subjectMapper;
 
     @Override
-    @Cacheable(cacheNames = "subjects")
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "subjectList")
     public List<SubjectDTO> getAll() {
         return subjectRepository.findAll().stream()
                 .map(subjectMapper::toDTO)
@@ -31,6 +33,7 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(cacheNames = "subjects", key = "#id")
     public SubjectDTO getById(Long id) {
         Subject subject = subjectRepository.findById(id)
@@ -40,7 +43,10 @@ public class SubjectServiceImpl implements SubjectService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "subjects", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "subjectList", allEntries = true),
+            @CacheEvict(cacheNames = "subjects", allEntries = true)
+    })
     public SubjectDTO create(SubjectDTO subjectDTO) {
         Subject subject = subjectMapper.toEntity(subjectDTO);
         subject = subjectRepository.save(subject);
@@ -50,7 +56,10 @@ public class SubjectServiceImpl implements SubjectService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "subjects", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "subjectList", allEntries = true),
+            @CacheEvict(cacheNames = "subjects", allEntries = true)
+    })
     public SubjectDTO update(Long id, SubjectDTO subjectDTO) {
         Subject existing = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Предмет не найден"));
@@ -63,7 +72,10 @@ public class SubjectServiceImpl implements SubjectService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "subjects", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "subjectList", allEntries = true),
+            @CacheEvict(cacheNames = "subjects", allEntries = true)
+    })
     public void delete(Long id) {
         subjectRepository.deleteById(id);
         log.info("Удален предмет с id {}", id);

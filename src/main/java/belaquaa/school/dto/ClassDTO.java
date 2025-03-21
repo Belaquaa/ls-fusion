@@ -1,22 +1,26 @@
 package belaquaa.school.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class ClassDTO {
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     private Integer number;
 
     private String letter;
 
-    private SubjectDTO profileSubject;
+    private Long profileSubjectId;
 
-    private TeacherDTO classTeacher;
+    private Long classTeacherId;
 
-    private List<StudentDTO> students;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<Long> studentIds;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int studentsCount;
 }

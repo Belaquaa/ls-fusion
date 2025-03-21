@@ -4,7 +4,15 @@ import belaquaa.school.dto.TeacherDTO;
 import belaquaa.school.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -16,10 +24,7 @@ public class TeacherController {
 
     @GetMapping
     public List<TeacherDTO> getAllTeachers(@RequestParam(value = "isClassTeacher", required = false) Boolean isClassTeacher) {
-        if (isClassTeacher != null && isClassTeacher) {
-            return teacherService.getClassTeachers();
-        }
-        return teacherService.getAll();
+        return teacherService.getTeachersByIsClassTeacher(isClassTeacher);
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,7 @@
 package belaquaa.school.exception;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +20,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOperationException.class)
     public ResponseEntity<ErrorResponse> handleInvalidOperation(InvalidOperationException ex) {
         ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String detailedMessage = ex.getMostSpecificCause().getMessage();
+        String userMessage = "Дублирующая запись в базе данных.";
+
+        if (detailedMessage != null && detailedMessage.contains("duplicate key value violates unique constraint")) {
+            userMessage = "Запись с такими данными уже существует.";
+        }
+
+        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), userMessage);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
