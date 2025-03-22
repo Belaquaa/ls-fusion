@@ -12,6 +12,7 @@ import belaquaa.school.service.TeacherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "teachers", allEntries = true)
     public TeacherDto create(TeacherDto teacherDTO) {
         Teacher teacher = teacherMapper.toEntity(teacherDTO);
         teacher.setSubjects(loadSubjects(teacherDTO.getSubjectIds()));
@@ -71,6 +73,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "teachers", allEntries = true)
     public TeacherDto update(Long id, TeacherDto teacherDTO) {
         Teacher existing = teacherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Учитель не найден"));
@@ -84,6 +87,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "teachers", allEntries = true)
     public void delete(Long id) {
         teacherRepository.deleteById(id);
         log.info("Удален учитель с id {}", id);
